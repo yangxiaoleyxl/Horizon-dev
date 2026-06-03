@@ -16,7 +16,7 @@ from ..models import (
     AIConfig, AIProvider, Config, FilteringConfig, SourcesConfig,
     GitHubSourceConfig, HackerNewsConfig, RSSSourceConfig,
     RedditConfig, RedditSubredditConfig, RedditUserConfig,
-    TelegramConfig, TelegramChannelConfig,
+    TelegramConfig, TelegramChannelConfig, OpenBBConfig, OpenBBWatchlist,
 )
 from ..storage.manager import StorageManager
 from .presets import load_presets, match_sources
@@ -201,6 +201,7 @@ def build_config(
     reddit_subreddits = []
     reddit_users = []
     telegram_channels = []
+    openbb_watchlists = []
     hn_enabled = False
 
     for src in selected_sources:
@@ -243,6 +244,15 @@ def build_config(
                 channel=cfg.get("channel", ""),
                 fetch_limit=cfg.get("fetch_limit", 20),
             ))
+        elif src_type == "openbb_watchlist":
+            openbb_watchlists.append(OpenBBWatchlist(
+                name=cfg.get("name", ""),
+                symbols=cfg.get("symbols", []),
+                enabled=cfg.get("enabled", True),
+                provider=cfg.get("provider", "yfinance"),
+                fetch_limit=cfg.get("fetch_limit", 20),
+                category=cfg.get("category", ""),
+            ))
         elif src_type == "hackernews":
             hn_enabled = True
 
@@ -265,12 +275,18 @@ def build_config(
         channels=telegram_channels,
     )
 
+    openbb_config = OpenBBConfig(
+        enabled=bool(openbb_watchlists),
+        watchlists=openbb_watchlists,
+    )
+
     sources = SourcesConfig(
         github=github_sources,
         hackernews=hn_config,
         rss=rss_sources,
         reddit=reddit_config,
         telegram=telegram_config,
+        openbb=openbb_config,
     )
 
     filtering = FilteringConfig(

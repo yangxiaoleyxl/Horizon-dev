@@ -54,6 +54,15 @@ def test_load_config_success(tmp_path):
     assert config.ai.provider == "anthropic"
 
 
+def test_save_stock_prediction_uses_distinct_filename(tmp_path):
+    storage = StorageManager(data_dir=str(tmp_path))
+
+    path = storage.save_stock_prediction("2026-06-02", "# Prediction", language="en")
+
+    assert path.name == "horizon-2026-06-02-ai-stocks-en.md"
+    assert path.read_text(encoding="utf-8") == "# Prediction"
+
+
 class TestExpandEnvVars:
     """Recursive ${VAR} expansion on config dicts/lists/strings."""
 

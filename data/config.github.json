@@ -86,10 +86,18 @@
       "reply_min_likes": 5
     },
     "openbb": {
-      "enabled": false,
+      "enabled": true,
       "fetch_filings": false,
       "filings_provider": "sec",
       "watchlists": [
+        {
+          "name": "ai-infrastructure",
+          "enabled": true,
+          "provider": "yfinance",
+          "fetch_limit": 25,
+          "category": "ai-stocks",
+          "symbols": ["NVDA", "AMD", "AVGO", "TSM", "ASML", "ARM", "SMCI", "DELL", "ANET", "MU", "MSFT", "GOOGL", "AMZN", "META", "ORCL", "PLTR"]
+        },
         {
           "name": "megacaps",
           "enabled": true,

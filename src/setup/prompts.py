@@ -25,7 +25,7 @@ Return a JSON object with this structure:
 {{
   "sources": [
     {{
-      "type": "rss" | "reddit_subreddit" | "github_user" | "github_repo" | "telegram",
+      "type": "rss" | "reddit_subreddit" | "github_user" | "github_repo" | "telegram" | "openbb_watchlist",
       "description": "Brief English description",
       "description_zh": "简短中文描述",
       "reason": "Why this source is relevant",
@@ -35,6 +35,7 @@ Return a JSON object with this structure:
         // For github_user: {{"username": "..."}}
         // For github_repo: {{"owner": "...", "repo": "..."}}
         // For telegram: {{"channel": "...", "fetch_limit": 20}}
+        // For openbb_watchlist: {{"name": "...", "provider": "yfinance", "fetch_limit": 25, "category": "ai-stocks", "symbols": ["NVDA", "MSFT"]}}
       }}
     }}
   ]

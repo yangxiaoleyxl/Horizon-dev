@@ -54,7 +54,8 @@ Consider:
 - Technical depth and novelty
 - Potential impact on the field
 - Quality of writing/presentation
-- Relevance to software engineering, AI/ML, and systems research
+- Relevance to software engineering, AI/ML, systems research, and configured finance/market sources
+- For OpenBB or finance sources, treat market-moving AI infrastructure, semiconductor, GPU, data-center, hyperscaler capex, cloud platform, and AI software stock news as relevant when it explains the AI supply chain or investment cycle; routine price-only market noise should still score low
 - Community discussion quality: insightful comments, diverse viewpoints, and debates increase value
 - Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance
 """

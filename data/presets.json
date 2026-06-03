@@ -58,6 +58,35 @@
       ]
     },
     {
+      "id": "ai-finance",
+      "name": "AI Finance / AI Stocks",
+      "name_zh": "AI 金融 / 人工智能股票",
+      "keywords": ["ai finance", "ai stocks", "artificial intelligence stocks", "semiconductor", "gpu", "data center", "cloud capex", "ai infrastructure", "equities", "人工智能股票", "AI股票", "半导体", "GPU", "数据中心", "云资本开支", "AI基础设施"],
+      "sources": [
+        {
+          "type": "openbb_watchlist",
+          "description": "OpenBB company news watchlist for AI infrastructure and platform stocks",
+          "description_zh": "OpenBB 公司新闻观察列表：AI 基础设施与平台相关股票",
+          "tags": ["finance", "stocks", "ai", "semiconductor", "data-center"],
+          "config": {
+            "name": "ai-infrastructure",
+            "enabled": true,
+            "provider": "yfinance",
+            "fetch_limit": 25,
+            "category": "ai-stocks",
+            "symbols": ["NVDA", "AMD", "AVGO", "TSM", "ASML", "ARM", "SMCI", "DELL", "ANET", "MU", "MSFT", "GOOGL", "AMZN", "META", "ORCL", "PLTR"]
+          }
+        },
+        {
+          "type": "rss",
+          "description": "Yahoo Finance Technology News — public market context around AI, chips, and cloud",
+          "description_zh": "Yahoo Finance 科技新闻 — AI、芯片与云相关的公开市场背景",
+          "tags": ["finance", "stocks", "tech-news"],
+          "config": { "name": "Yahoo Finance Technology", "url": "https://finance.yahoo.com/news/rssindex", "category": "ai-finance" }
+        }
+      ]
+    },
+    {
       "id": "systems",
       "name": "Systems / Infrastructure",
       "name_zh": "系统 / 基础设施",

@@ -297,6 +297,14 @@ uv pip install --only-binary=:all: openbb openbb-benzinga
       "enabled": true,
       "watchlists": [
         {
+          "name": "ai-infrastructure",
+          "enabled": true,
+          "provider": "yfinance",
+          "fetch_limit": 25,
+          "category": "ai-stocks",
+          "symbols": ["NVDA", "AMD", "AVGO", "TSM", "ASML", "ARM", "SMCI", "DELL", "ANET", "MU", "MSFT", "GOOGL", "AMZN", "META", "ORCL", "PLTR"]
+        },
+        {
           "name": "megacaps",
           "enabled": true,
           "provider": "yfinance",
@@ -317,6 +325,8 @@ uv pip install --only-binary=:all: openbb openbb-benzinga
 - `fetch_limit` — maximum news rows requested for that watchlist
 - `category` — optional tag stored on fetched items
 - `symbols` — ticker symbols to fetch together; group symbols by provider to keep requests efficient
+
+The checked-in example config includes an `ai-infrastructure` watchlist for AI-related public equities: GPU/chip suppliers, semiconductor equipment/foundry names, AI server/networking vendors, hyperscalers, and AI software/platform companies.
 
 OpenBB provider credentials are handled by the OpenBB SDK itself, using its own environment variables or user settings. Horizon does not pass those secrets through `data/config.json`.
 

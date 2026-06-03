@@ -23,6 +23,7 @@ from .scrapers.ossinsight import OSSInsightScraper
 from .ai.client import create_ai_client
 from .ai.analyzer import ContentAnalyzer
 from .ai.summarizer import DailySummarizer
+from .ai.stock_predictor import AIStockPredictor
 from .ai.enricher import ContentEnricher
 from .ai.tokens import get_usage_snapshot
 
@@ -130,17 +131,26 @@ class HorizonOrchestrator:
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             for lang in self.config.ai.languages:
                 summarizer = DailySummarizer()
-                summary = await summarizer.generate_summary(important_items, today, len(all_items), language=lang)
-
-                # Save to data/summaries/
-                summary_path = self.storage.save_daily_summary(today, summary, language=lang)
-                self.console.print(f"💾 Saved {lang.upper()} summary to: {summary_path}\n")
+                is_stock_prediction = lang == "en"
+                if is_stock_prediction:
+                    predictor = AIStockPredictor(create_ai_client(self.config.ai))
+                    summary = await predictor.generate_prediction(important_items, today)
+                    summary_path = self.storage.save_stock_prediction(today, summary, language=lang)
+                    self.console.print(f"💾 Saved AI stock prediction to: {summary_path}\n")
+                else:
+                    summary = await summarizer.generate_summary(important_items, today, len(all_items), language=lang)
+                    summary_path = self.storage.save_daily_summary(today, summary, language=lang)
+                    self.console.print(f"💾 Saved {lang.upper()} summary to: {summary_path}\n")
 
                 # Copy to docs/ for GitHub Pages
                 try:
                     from pathlib import Path
 
-                    post_filename = f"{today}-summary-{lang}.md"
+                    post_filename = (
+                        f"{today}-ai-stocks-{lang}.md"
+                        if is_stock_prediction
+                        else f"{today}-summary-{lang}.md"
+                    )
                     posts_dir = Path("docs/_posts")
                     posts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -150,7 +160,7 @@ class HorizonOrchestrator:
                     front_matter = (
                         "---\n"
                         "layout: default\n"
-                        f"title: \"Horizon Summary: {today} ({lang.upper()})\"\n"
+                        f"title: \"{'Horizon AI Stock Prediction' if is_stock_prediction else 'Horizon Summary'}: {today} ({lang.upper()})\"\n"
                         f"date: {today}\n"
                         f"lang: {lang}\n"
                         "---\n\n"
@@ -167,15 +177,22 @@ class HorizonOrchestrator:
                     with open(dest_path, "w", encoding="utf-8") as f:
                         f.write(front_matter + summary_content)
 
-                    self.console.print(f"📄 Copied {lang.upper()} summary to GitHub Pages: {dest_path}\n")
+                    if is_stock_prediction:
+                        self.console.print(f"📄 Copied AI stock prediction to GitHub Pages: {dest_path}\n")
+                    else:
+                        self.console.print(f"📄 Copied {lang.upper()} summary to GitHub Pages: {dest_path}\n")
                 except Exception as e:
-                    self.console.print(f"[yellow]⚠️  Failed to copy {lang.upper()} summary to docs/: {e}[/yellow]\n")
+                    self.console.print(f"[yellow]⚠️  Failed to copy {lang.upper()} output to docs/: {e}[/yellow]\n")
 
                 # Send email if configured
                 if self.email_manager and self.config.email and self.config.email.enabled:
-                    self.console.print(f"📧 Sending {lang.upper()} email summary...")
+                    self.console.print(f"📧 Sending {lang.upper()} email output...")
                     subscribers = self.storage.load_subscribers()
-                    subject = f"Horizon Summary ({lang.upper()}) - {today}"
+                    subject = (
+                        f"Horizon AI Stock Prediction ({lang.upper()}) - {today}"
+                        if is_stock_prediction
+                        else f"Horizon Summary ({lang.upper()}) - {today}"
+                    )
                     self.email_manager.send_daily_summary(summary, subject, subscribers)
 
                 # Send webhook notification if configured

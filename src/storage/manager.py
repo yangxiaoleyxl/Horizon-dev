@@ -117,6 +117,15 @@ class StorageManager:
 
         return filepath
 
+    def save_stock_prediction(self, date: str, markdown: str, language: str = "en") -> Path:
+        filename = f"horizon-{date}-ai-stocks-{language}.md"
+        filepath = self.summaries_dir / filename
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(markdown)
+
+        return filepath
+
     def load_subscribers(self) -> list:
         """Loads the list of email subscribers."""
         subscribers_path = self.data_dir / "subscribers.json"

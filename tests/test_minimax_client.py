@@ -236,6 +236,62 @@ class TestTemperatureFallback:
         assert mock_create.call_count == 2
 
 
+class TestMaxCompletionTokensFallback:
+    @staticmethod
+    def _make_response(text: str = "{}") -> MagicMock:
+        resp = MagicMock()
+        resp.choices = [MagicMock()]
+        resp.choices[0].message.content = text
+        resp.usage.prompt_tokens = 1
+        resp.usage.completion_tokens = 1
+        return resp
+
+    def test_uses_max_completion_tokens_for_gpt5_prefix(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        client = OpenAIClient(_make_config(
+            provider=AIProvider.OPENAI,
+            api_key_env="OPENAI_API_KEY",
+            model="gpt-5.5",
+        ))
+
+        with patch.object(
+            client.client.chat.completions, "create", new_callable=AsyncMock
+        ) as mock_create:
+            mock_create.return_value = self._make_response()
+            asyncio.run(client.complete(system="s", user="u"))
+
+        call_kwargs = mock_create.call_args[1]
+        assert call_kwargs["max_completion_tokens"] == 4096
+        assert "max_tokens" not in call_kwargs
+
+    def test_retries_with_max_completion_tokens_for_proxy_alias(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        client = OpenAIClient(_make_config(
+            provider=AIProvider.OPENAI,
+            api_key_env="OPENAI_API_KEY",
+            model="hermes-gpt55-alias",
+        ))
+
+        with patch.object(
+            client.client.chat.completions, "create", new_callable=AsyncMock
+        ) as mock_create:
+            mock_create.side_effect = [
+                RuntimeError("Unsupported parameter: 'max_tokens'. Use 'max_completion_tokens' instead."),
+                self._make_response("ok"),
+            ]
+            result = asyncio.run(client.complete(system="s", user="u"))
+
+        assert result == "ok"
+        assert mock_create.call_count == 2
+        first_call = mock_create.call_args_list[0][1]
+        second_call = mock_create.call_args_list[1][1]
+        assert first_call["max_tokens"] == 4096
+        assert "max_completion_tokens" not in first_call
+        assert second_call["max_completion_tokens"] == 4096
+        assert "max_tokens" not in second_call
+        assert client._use_max_completion_tokens is True
+
+
 class TestFactoryFunction:
     def test_creates_openai_client_for_minimax(self, monkeypatch):
         monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
