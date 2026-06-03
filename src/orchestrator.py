@@ -23,7 +23,7 @@ from .scrapers.ossinsight import OSSInsightScraper
 from .ai.client import create_ai_client
 from .ai.analyzer import ContentAnalyzer
 from .ai.summarizer import DailySummarizer
-from .ai.stock_predictor import AIStockPredictor
+from .ai.stock_predictor import AIStockPredictor, extract_ai_stock_items
 from .ai.enricher import ContentEnricher
 from .ai.tokens import get_usage_snapshot
 
@@ -99,6 +99,17 @@ class HorizonOrchestrator:
             ]
             important_items.sort(key=lambda x: x.ai_score or 0, reverse=True)
 
+            # 5.1 Select stock-news items before applying the general summary
+            # threshold/dedup filters. Stock prediction is a separate report
+            # with its own relevance criteria, so low-scored finance items
+            # should not disappear just because they are not daily-summary items.
+            stock_prediction_items = extract_ai_stock_items(analyzed_items)
+            if stock_prediction_items:
+                stock_prediction_items.sort(key=lambda x: x.ai_score or 0, reverse=True)
+                self.console.print(
+                    f"📈 Selected {len(stock_prediction_items)} AI stock items for prediction\n"
+                )
+
             self.console.print(
                 f"⭐️ {len(important_items)} items scored ≥ {threshold}\n"
             )
@@ -134,7 +145,7 @@ class HorizonOrchestrator:
                 is_stock_prediction = lang == "en"
                 if is_stock_prediction:
                     predictor = AIStockPredictor(create_ai_client(self.config.ai))
-                    summary = await predictor.generate_prediction(important_items, today)
+                    summary = await predictor.generate_prediction(stock_prediction_items, today)
                     summary_path = self.storage.save_stock_prediction(today, summary, language=lang)
                     self.console.print(f"💾 Saved AI stock prediction to: {summary_path}\n")
                 else:
